@@ -20,7 +20,6 @@ import scenario.data.CSVReader;
 import scenario.data.CountsGenerator;
 import scenario.gibbs.GibbsAlgorithm;
 import scenario.gibbs.GibbsSampler;
-import scenario.gibbs.problem.GibbsProblem;
 import scenario.gibbs.problem.GibbsProblemFromCounts;
 import scenario.ipf.IPFAlgorithm;
 import scenario.ipf.IPFSampler;
@@ -34,7 +33,7 @@ public class RunData {
 
 		for (int i = 0; i < 100; i++)
 			algorithm.runOneIteration();
-		
+
 		IPFSampler sampler = new IPFSampler(algorithm.getWeights(), random);
 
 		return sampler;
@@ -50,7 +49,8 @@ public class RunData {
 		return sampler;
 	}
 
-	static private Sampler createBNSampler(List<List<Integer>> reducedData, INDArray reducedCounts, Random random) {
+	static private Sampler createBNSampler(List<List<Integer>> reducedData, INDArray reducedCounts, Random random)
+			throws InterruptedException {
 		BNGraphGenerator graphGenerator = new BNGraphGenerator(random);
 
 		BNGraphFinder graphFinder = new BNGraphFinder(graphGenerator, reducedCounts, reducedData, random);
@@ -63,13 +63,13 @@ public class RunData {
 		return sampler;
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		File inputPath = new File(args[0]);
 		List<String> columns = Arrays.asList(args[1].split(","));
 		double fraction = Double.parseDouble(args[2]);
 		double relativeSampleSize = Double.parseDouble(args[3]);
 		String samplerName = args[4];
-		
+
 		Random random = new Random(0);
 
 		List<List<Integer>> data = new CSVReader(";").load(inputPath, columns);
@@ -80,10 +80,10 @@ public class RunData {
 
 		INDArray counts = new CountsGenerator().getCounts(data);
 		INDArray reducedCounts = new CountsGenerator().getCounts(reducedData, data);
-		
+
 		Sampler sampler = null;
 		int sampleSize = (int) (data.size() * relativeSampleSize);
-		
+
 		switch (samplerName) {
 		case "ipf":
 			sampler = createIPFSampler(counts, reducedCounts, random);
@@ -100,7 +100,7 @@ public class RunData {
 
 		SRMSE srmse = new SRMSE(counts);
 		HeterogeneityLoss heterogeneityLoss = new HeterogeneityLoss(counts);
-		
+
 		long lastTime = System.currentTimeMillis();
 
 		for (int i = 0; i < sampleSize; i++) {
@@ -110,10 +110,11 @@ public class RunData {
 
 			if (System.currentTimeMillis() - lastTime > 1000) {
 				lastTime = System.currentTimeMillis();
-				System.out.println(i + "/" + sampleSize + " # SRMSE: " + srmse.compute() + "   L: " + heterogeneityLoss.compute());
+				System.out.println(
+						i + "/" + sampleSize + " # SRMSE: " + srmse.compute() + "   L: " + heterogeneityLoss.compute());
 			}
 		}
-		
+
 		System.out.println("Final # SRMSE: " + srmse.compute() + "   L: " + heterogeneityLoss.compute());
 	}
 }
