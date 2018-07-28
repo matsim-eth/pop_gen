@@ -28,6 +28,8 @@ public class RunHouseholds {
 		Collections.shuffle(data, random);
 
 		INDArray counts = new CountsGenerator().getCounts(data);
+		
+		System.out.println("data loaded");
 
 		BNGraphGenerator graphGenerator = new BNGraphGenerator(random);
 

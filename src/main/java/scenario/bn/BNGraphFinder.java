@@ -85,11 +85,29 @@ public class BNGraphFinder {
 							System.out.println(info);
 						}
 					}
-
-					System.out.println(iterations.get() + " / " + numberOfIterations);
 				}
 			}));
 		}
+
+		threads.add(new Thread(() -> {
+			try {
+				int iteration = -1;
+
+				do {
+
+					Thread.sleep(1000);
+
+					int previous = iteration;
+					iteration = iterations.get();
+
+					if (iteration > previous) {
+						System.out.println(iterations.get() + " / " + numberOfIterations);
+					}
+				} while (iteration < numberOfIterations);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}));
 
 		threads.forEach(t -> t.start());
 
