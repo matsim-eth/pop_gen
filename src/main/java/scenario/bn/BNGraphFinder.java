@@ -47,11 +47,7 @@ public class BNGraphFinder {
 		for (int k = 0; k < Runtime.getRuntime().availableProcessors(); k++) {
 			threads.add(new Thread(() -> {
 				while (iterations.getAndIncrement() <= numberOfIterations) {
-					BNGraph graph = null;
-
-					synchronized (generator) {
-						graph = generator.generate(data.get(0).size());
-					}
+					BNGraph graph = generator.generate(data.get(0).size());
 
 					BNProblem problem = new BNProblem(counts);
 					BNAlgorithm algorithm = new BNAlgorithm(graph, problem, random);

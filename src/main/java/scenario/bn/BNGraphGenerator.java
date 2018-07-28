@@ -9,46 +9,55 @@ import java.util.Set;
 
 public class BNGraphGenerator {
 	final private Random random;
+	final private Set<String> tabuList = Collections.synchronizedSet(new HashSet<>());
 
 	public BNGraphGenerator(Random random) {
 		this.random = random;
 	}
 
 	public BNGraph generate(int numberOfVariables) {
-		// First generate a random ordering of variables
-		List<Integer> ordering = new LinkedList<>();
+		BNGraph graph = null;
 
-		for (int i = 0; i < numberOfVariables; i++) {
-			ordering.add(i);
-		}
+		do {
+			// First generate a random ordering of variables
+			List<Integer> ordering = new LinkedList<>();
 
-		Collections.shuffle(ordering);
-		
-		// Second build the connections. Only downstream variables can be attached.
-		List<Set<Integer>> connections = new LinkedList<>();
-
-		for (int i = 0; i < numberOfVariables - 1; i++) {
-			List<Integer> possibleConnections = new LinkedList<>();
-			for (int j = i + 1; j < numberOfVariables; j++) {
-				possibleConnections.add(j);
+			for (int i = 0; i < numberOfVariables; i++) {
+				ordering.add(i);
 			}
-			
-			Set<Integer> selectedConnections = new HashSet<>();
 
-			// Select random number of conncetions
-			int remaining = random.nextInt(possibleConnections.size() + 1);
+			Collections.shuffle(ordering);
 
-			while (remaining > 0) {
-				// Add random connection from the possible ones
-				selectedConnections.add(possibleConnections.remove(random.nextInt(remaining)));
-				remaining--;
+			// Second build the connections. Only downstream variables can be attached.
+			List<Set<Integer>> connections = new LinkedList<>();
+
+			for (int i = 0; i < numberOfVariables - 1; i++) {
+				List<Integer> possibleConnections = new LinkedList<>();
+				for (int j = i + 1; j < numberOfVariables; j++) {
+					possibleConnections.add(j);
+				}
+
+				Set<Integer> selectedConnections = new HashSet<>();
+
+				// Select random number of conncetions
+				int remaining = random.nextInt(possibleConnections.size() + 1);
+
+				while (remaining > 0) {
+					// Add random connection from the possible ones
+					selectedConnections.add(possibleConnections.remove(random.nextInt(remaining)));
+					remaining--;
+				}
+
+				connections.add(selectedConnections);
 			}
-			
-			connections.add(selectedConnections);
-		}
-		
-		connections.add(new HashSet<>());
-		
-		return new BNGraph(numberOfVariables, ordering, connections);
+
+			connections.add(new HashSet<>());
+
+			graph = new BNGraph(numberOfVariables, ordering, connections);
+		} while (tabuList.contains(graph.toString()));
+
+		tabuList.add(graph.toString());
+
+		return graph;
 	}
 }
